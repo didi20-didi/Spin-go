@@ -1,113 +1,164 @@
+
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Spin & Go 抽奖</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spin & Go - DIDI Office</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
   <style>
     body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: url('https://images.unsplash.com/photo-1535223289827-42f1e9919769?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
       text-align: center;
-      font-family: "Segoe UI", sans-serif;
-      background: #f5f5f5;
+      overflow-x: hidden;
     }
+
+    header {
+      padding: 30px 10px 10px;
+      font-size: 2em;
+      color: #00eaff;
+      text-shadow: 0 0 10px #00eaff;
+    }
+
+    .logo {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      color: #ccc;
+    }
+
     .wheel-container {
+      margin: 40px auto;
+      width: 320px;
+      height: 320px;
       position: relative;
-      margin: 60px auto;
-      width: 300px;
-      height: 300px;
     }
-    .wheel {
+
+    canvas {
       width: 100%;
       height: 100%;
-      border-radius: 50%;
-      border: 10px solid #444;
-      position: relative;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
-    .pointer {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0; 
-      height: 0; 
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 20px solid red;
-    }
-    .btn {
-      padding: 10px 20px;
-      font-size: 20px;
-      margin-top: 30px;
-      background-color: #ff4d4d;
-      color: white;
+
+    #spin {
+      background: linear-gradient(135deg, #00f2ff, #008cff);
       border: none;
+      padding: 15px 30px;
+      font-size: 1.1em;
+      border-radius: 50px;
       cursor: pointer;
-      border-radius: 8px;
+      color: #fff;
+      box-shadow: 0 0 20px #00f2ff;
+      transition: all 0.3s ease;
+    }
+
+    #spin:hover {
+      background: linear-gradient(135deg, #ffffff, #00f2ff);
+      box-shadow: 0 0 30px #00f2ff, 0 0 10px #fff inset;
+      transform: scale(1.05);
+    }
+
+    .prize-display {
+      margin-top: 20px;
+      font-size: 1.4em;
+      color: #fffad1;
+      text-shadow: 0 0 5px #fff;
+    }
+
+    .icon {
+      width: 40px;
+      height: 40px;
+      vertical-align: middle;
+      margin-right: 10px;
     }
   </style>
 </head>
 <body>
-
-  <h1>🎉 Spin & Go 幸运转盘 🎉</h1>
-
+  <div class="logo">DIDI Office</div>
+  <header>🎁 转一转·超幸运大奖！</header>
   <div class="wheel-container">
-    <div class="pointer"></div>
-    <canvas id="wheel" width="300" height="300" class="wheel"></canvas>
+    <canvas id="wheel"></canvas>
   </div>
-
-  <button class="btn" onclick="spin()">Spin</button>
+  <button id="spin">点击抽奖</button>
+  <div class="prize-display" id="prize"></div>
 
   <script>
-    const prizes = ["iPhone", "耳机", "谢谢参与", "现金 RM50", "Boost饮料", "霸王洗发水", "ZUS饮料", "甜品"];
+    const prizes = [
+      { name: "iPhone", icon: "📱" },
+      { name: "AirPods", icon: "🎧" },
+      { name: "香水", icon: "🌸" },
+      { name: "Apple Watch", icon: "⌚" },
+      { name: "RM100 现金", icon: "💵" },
+      { name: "霸王亲亲", icon: "🧴" },
+      { name: "再接再厉", icon: "🙂" },
+      { name: "任意选一个", icon: "🎁" }
+    ];
 
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
-    const numSectors = prizes.length;
-    const anglePerSector = (2 * Math.PI) / numSectors;
-    const colors = ["#FFB6C1", "#87CEFA", "#90EE90", "#FFD700", "#FFA07A", "#9370DB", "#00CED1", "#FF69B4"];
+    let size = canvas.width = canvas.height = 300;
+    let center = size / 2;
+    let angle = 0;
+    let spinning = false;
 
     function drawWheel() {
-      for (let i = 0; i < numSectors; i++) {
+      let arc = (2 * Math.PI) / prizes.length;
+      for (let i = 0; i < prizes.length; i++) {
+        let start = angle + i * arc;
         ctx.beginPath();
-        ctx.moveTo(150, 150);
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.arc(150, 150, 150, i * anglePerSector, (i + 1) * anglePerSector);
+        ctx.fillStyle = `hsl(${i * 360 / prizes.length}, 100%, 50%)`;
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, center, start, start + arc);
+        ctx.lineTo(center, center);
         ctx.fill();
+
+        // Text + icon
         ctx.save();
-        ctx.translate(150, 150);
-        ctx.rotate(i * anglePerSector + anglePerSector / 2);
-        ctx.fillStyle = "#000";
-        ctx.font = "14px Arial";
+        ctx.translate(center, center);
+        ctx.rotate(start + arc / 2);
         ctx.textAlign = "right";
-        ctx.fillText(prizes[i], 140, 5);
+        ctx.fillStyle = "#fff";
+        ctx.font = "16px Orbitron";
+        ctx.fillText(prizes[i].icon + " " + prizes[i].name, center - 10, 10);
         ctx.restore();
       }
     }
 
-    drawWheel();
-
-    let rotation = 0;
-    let spinning = false;
-
-    function spin() {
+    function spinWheel() {
       if (spinning) return;
-
       spinning = true;
-      const randomIndex = Math.floor(Math.random() * numSectors);
-      const stopAngle = (360 / numSectors) * randomIndex;
-      const spins = 5;
-      const totalAngle = 360 * spins + (360 - stopAngle - (360 / numSectors) / 2);
+      let spins = Math.random() * 3000 + 3000;
+      let rotation = 0;
+      let start = Date.now();
 
-      canvas.style.transform = `rotate(${rotation + totalAngle}deg)`;
-      rotation += totalAngle;
-
-      setTimeout(() => {
-        alert("🎁 恭喜你抽中：" + prizes[randomIndex] + "！");
-        spinning = false;
-      }, 5200);
+      function animate() {
+        let now = Date.now();
+        let delta = now - start;
+        if (delta < 4000) {
+          rotation = easeOut(delta, 0, spins, 4000);
+          angle = (rotation % 360) * Math.PI / 180;
+          ctx.clearRect(0, 0, size, size);
+          drawWheel();
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          let selected = prizes[Math.floor(((360 - (rotation % 360)) / 360) * prizes.length) % prizes.length];
+          document.getElementById("prize").innerHTML = `${selected.icon} <strong>${selected.name}</strong>`;
+        }
+      }
+      animate();
     }
-  </script>
 
+    function easeOut(t, b, c, d) {
+      t /= d;
+      t--;
+      return c * (t*t*t + 1) + b;
+    }
+
+    drawWheel();
+    document.getElementById("spin").addEventListener("click", spinWheel);
+  </script>
 </body>
 </html>
